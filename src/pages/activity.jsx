@@ -3,49 +3,37 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Activity = () => {
-    // State to hold the form data
     const [formData, setFormData] = useState({
         type: '',
-        duration: '', // in minutes
-        distance: '', // in km
+        duration: '',
+        distance: '',
     });
 
     const navigate = useNavigate();
 
     const handleChange = (e) => {
-        // Update state whenever an input value changes
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Final submission handler
     const handleSubmit = (e) => {
         e.preventDefault();
+        const submissionData = { ...formData, date: new Date().toISOString().split('T')[0] };
         
-        // 1. Prepare data, ensuring duration and distance are numeric and adding the date
-        const submissionData = { 
-            ...formData, 
-            date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
-            duration: Number(formData.duration),
-            distance: Number(formData.distance)
-        };
-        
-        // TODO: Panggil logActivity API di sini (Uncomment when connecting live)
-        // console.log('Logging Activity:', submissionData);
-        
+        console.log('Logging Activity:', submissionData);
         alert('Activity Logged! Navigating to Report...');
         
-        // 2. NAVIGATE to the report page, passing the submitted data via state
+        // Navigate to the new report page, passing the submitted data via state
         navigate('/activity-report', { state: { report: submissionData } }); 
     };
 
     return (
-        <div className="activity-container container-style">
+        <div className="activity-container"> {/* Applies the floating card styles */}
             <header className="header-style">
                 <h1 className="title-style">🏋️ Activity Log</h1>
             </header>
+            
             <form onSubmit={handleSubmit} className="form-style">
-                
-                {/* Type of Activity Selector */}
+                {/* Type Selector */}
                 <div className="input-group-style">
                     <label htmlFor="activity-type" className="label-style">Type of Activity:</label>
                     <select id="activity-type" name="type" value={formData.type} onChange={handleChange} required className="input-style">

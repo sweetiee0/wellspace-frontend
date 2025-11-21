@@ -37,6 +37,7 @@ const MenuPage = () => {
                     <Link to="/nutrition" className="menu-btn-large">NUTRITION LOG</Link>
                     <Link to="/reminders" className="menu-btn-large">REMINDERS</Link>
                     <Link to="/diary" className="menu-btn-large">MOOD & WELLNESS DIARY</Link>
+                    <Link to="/weekly-progress" className="menu-btn-large">WEEKLY PROGRESS</Link> {/* <-- NEW BUTTON ADDED */}
                 </div>
             </main>
             

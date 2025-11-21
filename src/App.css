@@ -688,3 +688,35 @@ input:checked + .slider:before {
     border-radius: 4px;
     margin: 0 10px;
 }
+
+/* --- Forgot Password Screen Specific Styles --- */
+
+/* Style for the 'Send' button */
+.send-button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 50px;
+    background-color: #ffc0cb; /* Light pink color */
+    color: #c93345; /* Red text color */
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(255, 192, 203, 0.5); 
+    transition: background-color 0.3s;
+    margin-top: 30px; /* Space above the button */
+}
+
+.reset-description {
+    font-size: 0.9em;
+    color: #333;
+    margin-top: 20px;
+    line-height: 1.4;
+    padding: 0 10px; /* Padding for better reading */
+}
+
+/* You may need to adjust the input placeholder color for this screen
+   to match the lighter red text shown in the wireframe. */
+input[type="text"]::placeholder {
+    color: #c93345; 
+}
