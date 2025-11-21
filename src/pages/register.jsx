@@ -6,7 +6,7 @@ import { RiLockPasswordLine } from 'react-icons/ri';
 import { FaRegUser } from 'react-icons/fa'; 
 // import { registerUser } from '../services/api'; // (Uncomment when ready)
 
-const Register = () => {
+const Register = () => { // <-- Component definition
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -27,10 +27,9 @@ const Register = () => {
             return alert("Passwords do not match!");
         }
         
-        // TODO: Call registerUser API here
         console.log('Attempting registration:', formData);
         alert("Registration attempt successful (Prototype Mode).");
-        // navigate('/'); 
+        navigate('/'); // Go back to login page
     };
 
     return (
@@ -55,7 +54,7 @@ const Register = () => {
                     />
                 </div>
 
-                {/* INPUT EMAIL */}
+                {/* EMAIL */}
                 <div className="input-group-icon">
                     <MdOutlineMailOutline className="input-icon" />
                     <input 
@@ -94,15 +93,14 @@ const Register = () => {
                     />
                 </div>
 
-                {/* REGISTER BUTTON - FIXING THE STYLE */}
                 <button type="submit" className="btn-primary">Register</button>
             </form>
 
             <div className="footer-link">
-                <p>Already Have an Account? <Link to="/login">Enter</Link></p>
+                <p>Already Have an Account? <Link to="/">Log In</Link></p>
             </div>
         </div>
     );
 };
 
-export default Register;
+export default Register; // <--- PASTIKAN BARIS INI ADA!

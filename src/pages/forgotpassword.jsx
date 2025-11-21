@@ -1,24 +1,26 @@
 // src/pages/forgotpassword.jsx
-import React, { useState } from 'react'; 
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react'; // <-- PASTIKAN INI ADA
+import { Link, useNavigate } from 'react-router-dom';
 
-const forgotpassword = () => {
+const ForgotPassword = () => { // <-- Komponen Utama
   const [identifier, setIdentifier] = useState('');
+  const navigate = useNavigate();
   
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Sending reset link to:", identifier);
-    alert("Reset link sent (Prototype Mode)");
+    alert("Reset link sent (Prototype Mode).");
+    navigate('/login'); // Kembali ke Login selepas hantar
   };
 
   return (
     <div className="login-container">
-      <div className="header">
+      <header className="header">
         <h1 className="title" style={{color: '#d50000'}}>OoPpss!!!</h1>
         <p className="subtitle" style={{color: '#666', marginBottom: '10px'}}>
             Enter your email, phone, or username and we'll send you a link to change a new password.
         </p>
-      </div>
+      </header>
 
       <form onSubmit={handleSubmit} className="auth-form">
         <div className="input-group">
@@ -35,10 +37,10 @@ const forgotpassword = () => {
       </form>
 
       <div className="footer-link" style={{marginTop: '20px'}}>
-        <p>Remember your password? <Link to="/">Go Back to Login</Link></p>
+        <p>Remember your password? <Link to="/login">Go Back to Login</Link></p>
       </div>
     </div>
   );
 };
 
-export default ForgotPassword;
+export default ForgotPassword; // <-- Export utama

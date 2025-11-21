@@ -1,17 +1,19 @@
 // src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import WelcomePage from './pages/WelcomePage.jsx'; // Corrected Case
+import WelcomePage from './pages/welcome.jsx'; 
 import Login from './pages/login.jsx'; 
-import Register from './pages/Register.jsx'; 
-import ForgotPassword from './pages/ForgotPassword.jsx'; // <--- CRITICAL FIX
-import Dashboard from './pages/Dashboard.jsx'; 
-import MenuPage from './pages/MenuPage.jsx';       
-import Activity from './pages/Activity.jsx';  
-import Reminders from './pages/Reminders.jsx';
-import Nutrition from './pages/Nutrition.jsx';
-import DiaryEntry from './pages/DiaryEntry.jsx';    
+import Register from './pages/register.jsx'; 
+import ForgotPassword from './pages/ForgotPassword.jsx';
+import Dashboard from './pages/dashboard.jsx'; 
+import MenuPage from './pages/menu.jsx';      
+import Activity from './pages/activity.jsx';  
+import Reminders from './pages/reminders.jsx';
+import Nutrition from './pages/nutrition.jsx';
+import DiaryEntry from './pages/diaryentry.jsx';    
 import MoodSelect from './pages/moodselect.jsx'; 
+import ActivityReport from './pages/ActivityReport.jsx';
+import WeeklyProgress from './pages/weeklyprogress.jsx'; 
 
 import './App.css'; 
 import './index.css'; 
@@ -27,16 +29,20 @@ function App() {
           <Route path="/register" element={<Register />} /> 
           <Route path="/forgot-password" element={<ForgotPassword />} />
           
-          {/* Main App Routes */}
+          {/* Main App Routes (Accessed after login) */}
           <Route path="/dashboard" element={<Dashboard />} /> 
           <Route path="/menu" element={<MenuPage />} /> 
           
-          {/* Feature Routes */}
+          {/* 1. Activity Flow (Logging and Report) */}
           <Route path="/activity" element={<Activity />} />  
+          <Route path="/activity-report" element={<ActivityReport />} /> 
+          
+          {/* 2. Standard Feature Routes */}
           <Route path="/nutrition" element={<Nutrition />} /> 
           <Route path="/reminders" element={<Reminders />} /> 
+          <Route path="/weekly-progress" element={<WeeklyProgress />} /> 
 
-          {/* DIARY FLOW: Sequential routes */}
+          {/* 3. Diary Flow (Sequential Selection) */}
           <Route path="/diary" element={<MoodSelect />} />     
           <Route path="/diary-entry" element={<DiaryEntry />} /> 
         </Routes>

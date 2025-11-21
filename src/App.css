@@ -416,13 +416,39 @@ input:checked + .slider:before {
     border-bottom: 2px solid #5E35B1;
 }
 
-/* --- PROGRESS RING CARD STYLES (Based on Inspiration Image) --- */
+/* --- PROGRESS RING CARD STYLES (Based on Final Wireframe) --- */
+
+.dashboard-page-container {
+    padding: 20px 30px;
+}
+.dashboard-header-style {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+.header-title-style {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+}
+.dashboard-main-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #333;
+}
+
+.stacked-cards {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
 
 .progress-card-wrapper {
     background: white;
     border-radius: 25px;
     padding: 20px;
-    margin-bottom: 20px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.08);
     display: flex;
     justify-content: space-between;
@@ -444,13 +470,14 @@ input:checked + .slider:before {
     color: #888;
 }
 
-/* Placeholder styles for the actual ring animation (Simplified for Prototype) */
+/* --- Progress Ring Visuals (Placeholder Styles) --- */
 .progress-ring-container {
     position: relative;
     width: 65px;
     height: 65px;
     border-radius: 50%;
-    border: 5px solid #eee; /* Background ring */
+    border: 5px solid #E0E0E0; /* Light background ring */
+    box-sizing: border-box;
 }
 .progress-ring-value {
     position: absolute;
@@ -459,7 +486,7 @@ input:checked + .slider:before {
     transform: translate(-50%, -50%);
     font-size: 1rem;
     font-weight: 900;
-    color: #D32F2F; /* Pink/Red color for percentage */
+    /* Color is set inline via JSX (Pink or Purple) */
 }
 
 /* --- DIARY PAGE STYLES (Add to the bottom of src/App.css) --- */
@@ -689,34 +716,35 @@ input:checked + .slider:before {
     margin: 0 10px;
 }
 
-/* --- Forgot Password Screen Specific Styles --- */
+/* --- ACTIVITY LOG STYLING FIX (Override current styles in App.css) --- */
 
-/* Style for the 'Send' button */
-.send-button {
-    width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: 50px;
-    background-color: #ffc0cb; /* Light pink color */
-    color: #c93345; /* Red text color */
-    font-size: 1.2em;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(255, 192, 203, 0.5); 
-    transition: background-color 0.3s;
-    margin-top: 30px; /* Space above the button */
+.activity-container {
+    /* REMOVING FULL WIDTH, MAKING IT A FLOATING CARD */
+    width: 90%; 
+    max-width: 400px;
+    
+    /* FLOATING CARD STYLES */
+    background: white; 
+    border-radius: 20px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1); 
+    margin: 40px auto; /* Centers the card horizontally and vertically on desktop */
+    
+    /* Inner Content Padding (Adjusted for form elements) */
+    padding: 30px; 
+    display: flex;
+    flex-direction: column;
 }
 
-.reset-description {
-    font-size: 0.9em;
-    color: #333;
-    margin-top: 20px;
-    line-height: 1.4;
-    padding: 0 10px; /* Padding for better reading */
+/* Ensure the header is centered within the card */
+.header-style {
+    margin-bottom: 30px; /* Space under the title */
+    text-align: center;
 }
 
-/* You may need to adjust the input placeholder color for this screen
-   to match the lighter red text shown in the wireframe. */
-input[type="text"]::placeholder {
-    color: #c93345; 
+.form-style {
+    /* Ensures buttons/selects are aligned */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; 
+    padding: 0; /* Remove redundant padding */
 }
