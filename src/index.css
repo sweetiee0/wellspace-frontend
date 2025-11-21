@@ -1,0 +1,20 @@
+/* src/index.css */
+:root {
+  /* Use a standard sans-serif font for readability */
+  font-family: 'Poppins', sans-serif; 
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  /* Pink-Yellow Gradient Background */
+  background: linear-gradient(160deg, #fffde7 0%, #ffeb3b 40%, #ff80ab 100%);
+  min-height: 100vh;
+  
+  /* Final Flexbox Centering */
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+}
+/* Note: You may need to add a <link> tag for Poppins in index.html */
