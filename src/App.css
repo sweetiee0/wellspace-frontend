@@ -1,6 +1,46 @@
-/* --- WELCOME SCREEN STYLES (FINAL ALIGNMENT) --- */
+/* |================================================================================
+| 1. GLOBAL & WRAPPER STYLES
+|================================================================================
+| Defines the mobile app frame and general container settings. 
+*/
+/* Main Container (Simulating a mobile frame) */
+.app-wrapper {
+    width: 100%;
+    max-width: 480px; /* Constrains the app width */
+    height: auto; 
+    background: transparent; 
+    margin: 0 auto; 
+    box-shadow: none; 
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Inter', sans-serif;
+}
 
-/* This container manages the vertical layout and centering */
+/* Base input style used across all pages */
+input {
+    width: 100%;
+    padding: 18px 18px 18px 55px;
+    border: 1px solid #ffccff; 
+    border-radius: 30px; 
+    background: #fff;
+    box-shadow: 0 4px 10px rgba(255, 179, 219, 0.25); 
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+    box-sizing: border-box; 
+}
+
+/* Standard Feature Page Container */
+.container-style {
+    padding: 20px;
+    padding-bottom: 100px; /* Ensures space above bottom navigation */
+}
+
+/* |================================================================================
+| 2. WELCOME SCREEN STYLES
+|================================================================================
+*/
 .welcome-container {
     padding: 60px 30px;
     height: 100%;
@@ -8,16 +48,14 @@
     flex-direction: column;
     align-items: center; 
     text-align: center;
-    justify-content: flex-start; /* Start content from the top */
+    justify-content: flex-start; 
     min-height: 100vh; 
     position: relative; 
 }
 
-/* Titles and Headers */
 .welcome-title {
-    /* Styling to match the elegant, serif-like font in the wireframe */
     font-family: Georgia, serif; 
-    color: #C30000; /* Red color */
+    color: #C30000; 
     font-size: 3.5rem; 
     font-weight: 800; 
     margin-bottom: 5px; 
@@ -29,19 +67,12 @@
     margin-bottom: 30px;
 }
 
-/* Image */
-/* src/App.css */
-
-/* src/App.css */
-
 .welcome-image-area {
     width: 100%;
     display: flex;
     justify-content: center;
     flex-grow: 1; 
     align-items: center;
-    
-    /* FIX: Use a very light, solid pink color instead of plain white */
     background-color: #FFF7F9; 
     border-radius: 15px; 
     padding: 10px; 
@@ -53,10 +84,9 @@
     max-width: 300px;
 }
 
-/* Footer Quote Text */
 .welcome-text-block {
     padding: 0 30px;
-    margin-bottom: 120px; /* Ensures space above the fixed footer */
+    margin-bottom: 120px; 
     text-align: center;
 }
 .big-text {
@@ -94,108 +124,59 @@
     display: flex;
     align-items: center; 
     justify-content: center; 
+    color: white; /* Icon inside */
 }
 
-/* src/App.css - FINAL FLOATING CARD VERSION */
-
-/* Main Container (Removing the full-height frame) */
-.app-wrapper {
-  width: 100%;
-  max-width: 480px; /* Lebarkan sedikit ruang kerja */
-  height: auto; /* Biarkan tinggi mengikut kandungan (auto) */
-  background: transparent; /* Jadikannya lutsinar (transparent) */
-  margin: 0 auto; 
-  box-shadow: none; /* Buang shadow lama */
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-/* src/App.css - FINAL ALIGNMENT FIX */
-/* src/App.css - FINAL FLOATING CARD VERSION */
-
-/* Main Container (Removing the full-height frame) */
-.app-wrapper {
-  width: 100%;
-  max-width: 480px; /* Lebarkan sedikit ruang kerja */
-  height: auto; /* Biarkan tinggi mengikut kandungan (auto) */
-  background: transparent; /* Jadikannya lutsinar (transparent) */
-  margin: 0 auto; 
-  box-shadow: none; /* Buang shadow lama */
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-/* src/App.css - FINAL ALIGNMENT FIX (MUST BE LOADED) */
-
-
-/* Find this in src/App.css */
+/* |================================================================================
+| 3. LOGIN & AUTH STYLES (Floating Card)
+|================================================================================
+*/
 .login-container {
-  padding: 40px 40px; /* Padding is correct */
-  height: auto; 
-  margin: 40px auto; 
-  background: white(255, 192, 225); 
-  border-radius: 20px; 
-  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-  overflow: hidden; /* <--- CRITICAL FIX: Clips anything sticking out */
-  display: flex;
-  flex-direction: column;
-  justify-content: center; 
+    padding: 40px 40px; 
+    height: auto; 
+    margin: 40px auto; 
+    background: white; 
+    border-radius: 20px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    overflow: hidden; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
 }
-
 /* Header Text */
 .header { text-align: center; }
 .header h1 {
-  color: #d32f2f; 
-  font-size: 2.2rem;
-  font-weight: 800;
-  margin-bottom: 5px;
+    color: #d32f2f; 
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 5px;
 }
 .header p {
     color: #888;
     line-height: 1.5;
-    margin-bottom: 60px; /* Increased margin below header */
+    margin-bottom: 60px; 
 }
-
-/* 2. INPUT FIELD & ICON STYLING */
+/* Input Field & Icon Styling */
 .input-group-icon {
     position: relative;
-    margin-bottom: 40px; /* Vertical Spacing */
+    margin-bottom: 40px; 
     text-align: left; 
 }
-
 .input-icon {
     position: absolute;
-    left: 12px; /* Icon position */
+    left: 12px; 
     top: 50%;
     transform: translateY(-50%);
     color: #7e57c2; 
     font-size: 1.2rem;
     z-index: 10;
 }
-
-/* Find this in src/App.css */
-input {
-    width: 100%;
-    padding: 18px 18px 18px 55px;
-    border: 1px solid #ffccff; 
-    border-radius: 30px; 
-    background: #fff;
-    box-shadow: 0 4px 10px rgba(255, 179, 219, 0.25); /* Adjusted shadow intensity */
-    font-size: 1rem;
-    outline: none;
-    transition: all 0.3s;
-    box-sizing: border-box; /* <--- CRITICAL FIX: Ensures padding is counted IN the width */
-}
-
-/* 3. BUTTONS & LINKS */
+/* Buttons & Links */
 .forgot-pass {
     text-align: right; 
-    margin-bottom: 60px; /* Space before button */
+    margin-bottom: 60px; 
     padding-right: 15px; 
 }
-
 .btn-primary {
     width: 100%;
     padding: 18px;
@@ -208,20 +189,18 @@ input {
     box-shadow: 0 8px 20px rgba(94, 53, 177, 0.4);
     cursor: pointer;
 }
-
 .footer-link {
     text-align: center; 
     margin-top: 60px; 
     color: #888;
 }
 
-/* --- MENU PAGE STYLES (ADD THESE) --- */
-
+/* |================================================================================
+| 4. MENU PAGE STYLES (If used as a separate page)
+|================================================================================
+*/
 .menu-page-container {
-    padding: 20px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    padding: 30px;
 }
 .menu-header-style {
     display: flex;
@@ -232,7 +211,7 @@ input {
 .health-title {
     font-size: 1.8rem;
     font-weight: 900;
-    color: #D32F2F; /* Red Title */
+    color: #D32F2F; 
 }
 .menu-icon-btn {
     background: none;
@@ -246,13 +225,9 @@ input {
 }
 .search-bar-input {
     width: 100%;
-    padding: 15px 45px 15px 20px; /* Padding for search icon */
+    padding: 15px 45px 15px 20px; 
     border-radius: 30px;
-    border: 1px solid #ccc;
     margin-bottom: 0;
-    outline: none;
-    background: #fff;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
 }
 .menu-button-group {
     display: flex;
@@ -264,7 +239,7 @@ input {
     width: 100%;
     padding: 20px;
     border-radius: 15px;
-    background: #FFFAEC; /* Light yellowish background */
+    background: #FFFAEC; 
     font-size: 1.2rem;
     font-weight: 700;
     color: #333;
@@ -274,7 +249,7 @@ input {
     transition: all 0.2s;
 }
 .menu-btn-large:hover {
-    background: #ffe0e0; /* Hover effect */
+    background: #ffe0e0; 
 }
 .menu-bottom-nav-arrows {
     display: flex;
@@ -284,14 +259,13 @@ input {
     color: #999;
 }
 
-/* --- FEATURE PAGE UTILITIES (ADD THESE) --- */
-
-.container-style {
-    padding: 20px;
-    padding-bottom: 100px; /* Ensures space below content */
-}
+/* |================================================================================
+| 5. FEATURE PAGE UTILITIES (Forms, Inputs, Toggles)
+|================================================================================
+*/
 .header-style {
     margin-bottom: 30px;
+    text-align: center; /* Generally centered, but overridden in History */
 }
 .title-style {
     font-size: 1.8rem;
@@ -308,7 +282,7 @@ input {
 .input-group-style label, .mood-selector label {
     display: block;
     font-weight: 600;
-    color: #5E35B1; /* Purple label */
+    color: #5E35B1; 
     margin-bottom: 5px;
 }
 .input-group-style select, .input-group-style input, .diary-textarea {
@@ -326,19 +300,12 @@ input {
     padding: 15px;
     border: none;
     border-radius: 30px;
-    background: linear-gradient(90deg, #6c5ce7, #8a2be2); /* Blue-Purple */
+    background: linear-gradient(90deg, #6c5ce7, #8a2be2); 
     color: white;
     font-size: 1.1rem;
     font-weight: bold;
     cursor: pointer;
     margin-top: 15px;
-}
-
-/* Diary Specifics */
-.diary-textarea {
-    resize: vertical;
-    min-height: 200px;
-    margin-top: 10px;
 }
 
 /* Reminder Toggle Specifics */
@@ -393,12 +360,15 @@ input:checked + .slider:before {
     transform: translateX(18px);
 }
 
-/* --- DASHBOARD FIX: Tab and Metric Spacing --- */
+/* |================================================================================
+| 6. OLD DASHBOARD/PROGRESS STYLES (Keep for compatibility)
+|================================================================================
+*/
 
 .metrics-nav-bar { 
     display: flex;
     justify-content: flex-start;
-    gap: 15px; /* Tambah ruang antara tabs */
+    gap: 15px; 
     margin-bottom: 20px;
     overflow-x: auto;
     padding: 5px 0;
@@ -415,8 +385,6 @@ input:checked + .slider:before {
     color: #5E35B1;
     border-bottom: 2px solid #5E35B1;
 }
-
-/* --- PROGRESS RING CARD STYLES (Based on Final Wireframe) --- */
 
 .dashboard-page-container {
     padding: 20px 30px;
@@ -470,13 +438,13 @@ input:checked + .slider:before {
     color: #888;
 }
 
-/* --- Progress Ring Visuals (Placeholder Styles) --- */
+/* Progress Ring Visuals (Placeholder Styles) */
 .progress-ring-container {
     position: relative;
     width: 65px;
     height: 65px;
     border-radius: 50%;
-    border: 5px solid #E0E0E0; /* Light background ring */
+    border: 5px solid #E0E0E0; 
     box-sizing: border-box;
 }
 .progress-ring-value {
@@ -486,11 +454,12 @@ input:checked + .slider:before {
     transform: translate(-50%, -50%);
     font-size: 1rem;
     font-weight: 900;
-    /* Color is set inline via JSX (Pink or Purple) */
 }
 
-/* --- DIARY PAGE STYLES (Add to the bottom of src/App.css) --- */
-
+/* |================================================================================
+| 7. DIARY/MOOD STYLES
+|================================================================================
+*/
 .diary-header-quote {
     font-size: 1.5rem;
     font-weight: 700;
@@ -498,15 +467,13 @@ input:checked + .slider:before {
     margin-bottom: 25px;
     text-align: center;
 }
-
 .mood-selection-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Two columns as seen in the wireframe */
+    grid-template-columns: 1fr 1fr; 
     gap: 15px;
     margin-bottom: 30px;
     width: 100%;
 }
-
 .mood-card {
     background: #FFF;
     border: 1px solid #E0E0E0;
@@ -518,59 +485,39 @@ input:checked + .slider:before {
     cursor: pointer;
     transition: all 0.2s;
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    /* Ensures the button takes the full available grid space */
     width: 100%; 
 }
-
 .mood-card:hover {
     box-shadow: 0 6px 15px rgba(94, 53, 177, 0.1);
 }
-
 .selected-mood {
-    border-color: #5E35B1; /* Purple border for selected state */
-    background-color: #F0F4FF; /* Light background for selected state */
+    border-color: #5E35B1; 
+    background-color: #F0F4FF; 
 }
-
 .mood-emoji {
     font-size: 2.5rem;
     margin-bottom: 5px;
 }
-
 .mood-label {
     font-weight: 600;
     color: #555;
     font-size: 0.9rem;
 }
 
-/* Text Area Style */
-.diary-textarea {
-    width: 100%;
-    min-height: 150px;
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    outline: none;
-    box-sizing: border-box;
-    margin-bottom: 20px;
-}
-
-/* --- DIARY PAGE SPECIFIC STYLES --- */
-
+/* DIARY PAGE SPECIFIC STYLES */
 .diary-container {
-    padding: 0; /* Remove horizontal padding from main container */
+    padding: 0; 
     padding-top: 20px;
     padding-bottom: 100px;
     height: 100vh;
     overflow-y: auto;
     position: relative;
 }
-
 .diary-image-wrapper {
-    background: #E8F0F7; /* Light background for the image section */
+    background: #E8F0F7; 
     padding: 20px 0;
     margin-bottom: 20px;
     text-align: center;
-    /* Adding the purple wave/swoosh effect via CSS */
     border-bottom: 50px solid #5e35b1; 
     border-bottom-left-radius: 50% 20px;
     border-bottom-right-radius: 50% 20px;
@@ -582,14 +529,12 @@ input:checked + .slider:before {
     margin: 0 auto;
     display: block;
 }
-
 .diary-form-style {
-    padding: 0 40px; /* Add padding inside the form */
+    padding: 0 40px; 
     display: flex;
     flex-direction: column;
     align-items: center;
 }
-
 .diary-quote-block {
     text-align: center;
     margin-bottom: 30px;
@@ -600,10 +545,8 @@ input:checked + .slider:before {
     font-style: italic;
     color: #4A4A4A;
 }
-
-/* Text Area Style */
 .diary-textarea {
-    width: 100%;
+    resize: vertical;
     min-height: 150px;
     padding: 15px;
     border: 1px solid #ccc;
@@ -611,16 +554,82 @@ input:checked + .slider:before {
     box-sizing: border-box;
     margin-bottom: 30px;
 }
-
 /* Save Button (Specific Pink Color) */
 .diary-save-btn {
-    background: linear-gradient(90deg, #E91E63, #FF69B4); /* Magenta/Pink Gradient */
+    background: linear-gradient(90deg, #E91E63, #FF69B4); 
     box-shadow: 0 5px 15px rgba(233, 30, 99, 0.4);
     width: 70%;
 }
 
-/* --- ACTIVITY REPORT STYLES (ADD THESE) --- */
+/* NEW MOOD SELECTION STYLES */
+.mood-select-page-container {
+    padding: 40px 30px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
 
+.mood-header-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 25px;
+}
+
+.cute-emoji {
+    font-size: 5rem;
+    margin-bottom: 40px;
+}
+
+/* The 2x2 Grid Layout */
+.new-mood-selection-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 20px;
+    width: 100%;
+    max-width: 300px; 
+    margin-top: 20px;
+}
+
+.new-mood-card {
+    background: white;
+    border: 2px solid #fff;
+    border-radius: 20px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.new-mood-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(94, 53, 177, 0.15);
+}
+
+.selected-mood-new {
+    border-color: #5E35B1; 
+    box-shadow: 0 0 0 3px rgba(94, 53, 177, 0.5); 
+}
+
+.mood-emoji-new {
+    font-size: 2.5rem;
+    margin-bottom: 5px;
+}
+
+.mood-label-new {
+    font-weight: 600;
+    color: #555;
+    font-size: 0.85rem;
+}
+
+/* |================================================================================
+| 8. ACTIVITY REPORT & LOG STYLES
+|================================================================================
+*/
 .daily-report-container {
     padding: 20px 30px;
 }
@@ -670,10 +679,9 @@ input:checked + .slider:before {
     position: absolute;
     width: 100%;
     height: 100%;
-    /* Visually represent the colored ring section */
     border: 20px solid #f0f0f0; 
     border-radius: 50%;
-    border-left-color: #5E35B1; /* Example color segments */
+    border-left-color: #5E35B1; 
     border-bottom-color: #FFBFD4;
     transform: rotate(45deg);
 }
@@ -716,35 +724,291 @@ input:checked + .slider:before {
     margin: 0 10px;
 }
 
-/* --- ACTIVITY LOG STYLING FIX (Override current styles in App.css) --- */
-
+/* ACTIVITY LOG STYLING FIX (Floating Card) */
 .activity-container {
-    /* REMOVING FULL WIDTH, MAKING IT A FLOATING CARD */
     width: 90%; 
     max-width: 400px;
-    
-    /* FLOATING CARD STYLES */
     background: white; 
     border-radius: 20px; 
     box-shadow: 0 10px 40px rgba(0,0,0,0.1); 
-    margin: 40px auto; /* Centers the card horizontally and vertically on desktop */
-    
-    /* Inner Content Padding (Adjusted for form elements) */
+    margin: 40px auto; 
     padding: 30px; 
     display: flex;
     flex-direction: column;
 }
-
-/* Ensure the header is centered within the card */
-.header-style {
-    margin-bottom: 30px; /* Space under the title */
+.activity-container .header-style {
+    margin-bottom: 30px; 
     text-align: center;
 }
-
-.form-style {
-    /* Ensures buttons/selects are aligned */
+.activity-container .form-style {
     display: flex;
     flex-direction: column;
     gap: 15px; 
-    padding: 0; /* Remove redundant padding */
+    padding: 0; 
+}
+
+/* History Page Styles */
+.history-page-container {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #f8f8f8;
+    min-height: 100vh; 
+}
+.history-page-container .header-style {
+    display: flex;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+}
+.history-page-container .title-style {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+.logs-list-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; 
+}
+.log-card {
+    background-color: #ffffff;
+    padding: 15px 20px;
+    border-radius: 12px;
+    border-left: 5px solid; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); 
+    position: relative;
+}
+.log-type {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+    display: block;
+}
+.log-entry {
+    font-size: 1rem;
+    color: #555;
+    margin: 5px 0 10px 0;
+    line-height: 1.5;
+}
+.log-date {
+    font-size: 0.8rem;
+    color: #999;
+    display: block;
+    text-align: right;
+}
+
+
+/* |================================================================================
+| 9. NEW DASHBOARD HOME SCREEN STYLES (FROM IMAGE)
+|================================================================================
+| These styles are specifically for the "WELCOME WENDY!" menu page.
+*/
+
+/* 1. Overall Container and Background (Overriding existing .dashboard-page-container) */
+.dashboard-container {
+    padding: 20px 25px 90px 25px; /* Added bottom padding for bottom nav */
+    min-height: 100vh;
+    box-sizing: border-box;
+    /* Main Background Gradient: Pale Yellow, Pink, and Purple */
+    background: linear-gradient(
+        180deg, 
+        #FFFDE7 0%, /* Very pale yellow at top */
+        #FFE0F0 40%, /* Light pink/mauve in the middle */
+        #E0E0FF 100% /* Very pale blue/purple at bottom */
+    );
+}
+
+/* 2. Top Header and Welcome */
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+.welcome-area {
+    display: flex;
+    align-items: center;
+}
+.welcome-logo {
+    width: 35px; /* Size of the cute logo */
+    height: 35px;
+    margin-right: 10px;
+    /* Placeholder for the logo image/icon */
+    background: #F4C4C4; 
+    border-radius: 50%;
+    /* Ensure the actual logo is placed here */
+}
+.welcome-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #4A4A4A;
+}
+.welcome-text strong {
+    color: #C30000; /* Red/Maroon for the name */
+}
+.top-icons {
+    display: flex;
+    gap: 15px;
+    font-size: 1.5rem;
+    color: #4A4A4A;
+}
+
+/* 3. Breakfast Card (Daily Metrics) */
+.breakfast-card {
+    background: #FFF;
+    border-radius: 20px;
+    padding: 20px 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    position: relative;
+}
+.breakfast-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #C30000; /* Red color */
+    margin-bottom: 5px;
+}
+.breakfast-calories {
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 20px;
+}
+.metric-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end; 
+    margin-bottom: 15px;
+}
+.metric-item {
+    text-align: center;
+}
+.metric-value {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #4A4A4A;
+    margin-bottom: 3px;
+}
+.metric-label {
+    font-size: 0.8rem;
+    color: #555;
+    font-weight: 600;
+}
+.breakfast-card .top-right-icons {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    display: flex;
+    gap: 10px;
+    font-size: 1.2rem;
+    color: #C30000;
+}
+.bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #F0F0F0;
+    padding-top: 15px;
+}
+.today-dropdown {
+    font-weight: 600;
+    color: #555;
+    cursor: pointer;
+}
+.see-progress {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #C30000;
+    text-decoration: none;
+}
+
+/* 4. Action/Feature Cards (Grid Layout) */
+.feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 15px; 
+}
+.feature-card {
+    border-radius: 15px;
+    padding: 15px;
+    min-height: 150px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    color: white; /* All text on the card is white/light */
+}
+.card-title-icon {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+}
+.card-title-icon .icon {
+    font-size: 1.5rem;
+}
+.card-content {
+    font-size: 0.85rem;
+    margin: 5px 0 10px 0;
+    line-height: 1.4;
+    color: #E0E0E0; /* Slightly lighter content text */
+}
+.check-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+}
+.check-arrow {
+    font-size: 1.2rem;
+}
+
+/* Specific Card Styling */
+.activity-card {
+    background-color: #F47C7C; /* Red/Pink */
+}
+.hydration-card {
+    background-color: #F8B44A; /* Orange/Gold */
+}
+.reminders-card {
+    background-color: #6EB48B; /* Green */
+}
+.wellness-card {
+    background-color: #8C6AA1; /* Purple */
+}
+
+/* 5. Bottom Navigation Bar */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px; 
+    background: #FFF;
+    padding: 10px 0;
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+}
+.nav-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1.5rem;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.nav-icon.active {
+    color: #C30000; /* Red color for the active icon */
 }

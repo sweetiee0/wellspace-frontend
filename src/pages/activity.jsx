@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router-dom';
 const Activity = () => {
     const [formData, setFormData] = useState({
         type: '',
-        duration: '',
-        distance: '',
+        duration: '', // in minutes
+        distance: '', // in km
     });
 
     const navigate = useNavigate();
@@ -27,7 +27,7 @@ const Activity = () => {
     };
 
     return (
-        <div className="activity-container"> {/* Applies the floating card styles */}
+        <div className="activity-container"> {/* <-- Uses the new floating card style */}
             <header className="header-style">
                 <h1 className="title-style">🏋️ Activity Log</h1>
             </header>
