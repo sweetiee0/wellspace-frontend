@@ -1,9 +1,42 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 // Mengimport semua ikon dari Lucide React
 import { 
     Search, Bell, Plus, Edit2, Zap, Utensils,
-    Activity, MoonStar, CheckSquare, Settings, LogIn, UserPlus, Home, Clock, ChevronDown, Droplet, Footprints, X
+    Activity, MoonStar, CheckSquare, Settings, LogIn, UserPlus, Home, Clock, ChevronDown, Droplet, Footprints, X, Mail, Lock, User, Bike, Dribbble, Dumbbell, Flame, Watch, MessageSquareText
 } from 'lucide-react';
+
+// ====================================================================
+// --- GEMINI API INTEGRATION FUNCTION ---
+// ====================================================================
+
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=";
+const API_KEY = ""; // Kunci API akan disediakan oleh persekitaran semasa runtime
+
+const fetchGeminiResponse = async (prompt, systemInstruction) => {
+    const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+    };
+
+    try {
+        const response = await fetch(GEMINI_API_URL + API_KEY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        return result.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, Gemini gagal menjana respons.";
+
+    } catch (error) {
+        console.error("Gemini API call failed:", error);
+        return "Ralat sambungan AI. Sila cuba sebentar lagi.";
+    }
+};
 
 // ====================================================================
 // --- 1. FIREBASE SETUP & AUTHENTICATION HOOK ---
@@ -20,7 +53,7 @@ const setupFirebase = async () => {
         // Hanya lakukan inisialisasi jika pemboleh ubah global wujud
         if (typeof firebase !== 'undefined' && typeof __firebase_config !== 'undefined') {
             const firebaseConfig = JSON.parse(__firebase_config);
-            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+            const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initialAuthToken : null;
 
             // Inisialisasi app, auth, dan firestore menggunakan sintaks global (Canvas environment)
             const app = firebase.initializeApp(firebaseConfig);
@@ -70,93 +103,52 @@ const QUOTES_BY_MOOD = {
 const getQuote = (mood) => QUOTES_BY_MOOD[mood] || QUOTES_BY_MOOD.Happy;
 
 
-// --- PANGKALAN DATA PEMAKANAN (MOCK) ---
-const NUTRITION_DATABASE = {
-    // KATEGORI KURANG SIHAT (isHealthy: false)
-    'nasi lemak': { c: 550, p: 15, f: 30, b: 55, h: false },
-    'mee goreng mamak': { c: 600, p: 18, f: 25, b: 65, h: false },
-    'char koay teow': { c: 750, p: 20, f: 40, b: 65, h: false },
-    'nasi kandar': { c: 900, p: 25, f: 55, b: 80, h: false },
-    'hokkien mee (kl)': { c: 700, p: 22, f: 35, b: 60, h: false },
-    'mi kari': { c: 550, p: 18, f: 25, b: 50, h: false },
-    'wantan mee': { c: 450, p: 14, f: 18, b: 55, h: false },
-    'kuetiau goreng kerang': { c: 650, p: 18, f: 30, b: 60, h: false },
-    'nasi tomato': { c: 480, p: 16, f: 15, b: 70, h: false },
-    'claypot chicken rice': { c: 600, p: 25, f: 28, b: 65, h: false },
-    'bak kut teh': { c: 500, p: 30, f: 35, b: 15, h: false },
-    'roti canai biasa': { c: 350, p: 8, f: 18, b: 40, h: false },
-    'roti telur': { c: 450, p: 15, f: 22, b: 45, h: false },
-    'murtabak ayam': { c: 550, p: 25, f: 30, b: 50, h: false },
-    'pisang goreng': { c: 320, p: 3, f: 18, b: 35, h: false },
-    'keropok lekor': { c: 280, p: 10, f: 15, b: 25, h: false },
-    'cendol biasa': { c: 350, p: 2, f: 15, b: 50, h: false },
-    'ais kacang (abc)': { c: 400, p: 5, f: 12, b: 70, h: false },
-    'ayam goreng kfc/mcd': { c: 450, p: 28, f: 30, b: 20, h: false },
-    'burger ramly': { c: 580, p: 22, f: 35, b: 45, h: false },
-    'spaghetti carbonara': { c: 700, p: 28, f: 40, b: 50, h: false },
-    // Minuman manis/tinggi gula
-    'teh tarik ais': { c: 200, p: 2, f: 5, b: 35, h: false },
-    'milo ais': { c: 250, p: 5, f: 8, b: 40, h: false },
-    'sirap bandung ais': { c: 220, p: 0, f: 0, b: 55, h: false },
-    'air sarsi ais': { c: 150, p: 0, f: 0, b: 40, h: false },
-    'kopi susu ais gao': { c: 280, p: 5, f: 10, b: 45, h: false },
-    
-    // KATEGORI SIHAT/SEDERHANA (isHealthy: true)
-    'nasi goreng kampung': { c: 400, p: 15, f: 12, b: 50, h: true },
-    'nasi ayam hainan': { c: 450, p: 30, f: 10, b: 55, h: true },
-    'laksa penang': { c: 380, p: 25, f: 5, b: 50, h: true },
-    'laksa johor': { c: 420, p: 28, f: 10, b: 50, h: true },
-    'laksam': { c: 350, p: 15, f: 10, b: 50, h: true },
-    'nasi kerabu': { c: 450, p: 20, f: 15, b: 55, h: true },
-    'bihun goreng': { c: 380, p: 12, f: 10, b: 50, h: true },
-    'sup tulang/ekor': { c: 350, p: 35, f: 15, b: 15, h: true },
-    'yong tau foo': { c: 300, p: 25, f: 10, b: 20, h: true },
-    'ayam masak merah': { c: 400, p: 30, f: 18, b: 25, h: true },
-    'rendang ayam': { c: 480, p: 35, f: 25, b: 20, h: true },
-    'ikan bakar': { c: 300, p: 40, f: 10, b: 5, h: true },
-    'asam pedas ikan': { c: 320, p: 35, f: 8, b: 15, h: true },
-    'kari kepala ikan': { c: 400, p: 30, f: 20, b: 15, h: true },
-    'telur dadar': { c: 150, p: 12, f: 10, b: 1, h: true },
-    'sayur campur': { c: 100, p: 5, f: 5, b: 10, h: true },
-    'udang goreng kunyit': { c: 250, p: 28, f: 12, b: 5, h: true },
-    'rojak buah': { c: 250, p: 5, f: 5, b: 40, h: true },
-    'sup ayam': { c: 180, p: 25, f: 5, b: 10, h: true },
-    'air kosong ais': { c: 0, p: 0, f: 0, b: 0, h: true },
-    'jus karot susu ais': { c: 180, p: 3, f: 5, b: 25, h: true },
-};
-
-
+// Mock AI Calculation (Logik Inti Permintaan Pengguna)
 const calculateNutrition = (foodInput) => {
-    const inputLower = foodInput.toLowerCase().trim();
-    const totalDailyCalories = 2000;
+    const inputLower = foodInput.toLowerCase();
+    let isHealthy = true;
+    let calories = 0;
+    let proteins = 0;
+    let fats = 0;
+    let carbs = 0;
     
-    // Semak pangkalan data untuk sebarang padanan yang mengandungi input pengguna
-    for (const foodKey in NUTRITION_DATABASE) {
-        if (inputLower.includes(foodKey)) {
-            const data = NUTRITION_DATABASE[foodKey];
-            const rdcPercentage = Math.round((data.c / totalDailyCalories) * 100);
-
-            return {
-                isHealthy: data.h,
-                meal: foodKey.toUpperCase(),
-                calories: data.c.toFixed(0),
-                proteins: data.p.toFixed(1),
-                fats: data.f.toFixed(1),
-                carbs: data.b.toFixed(1),
-                rdc: rdcPercentage.toFixed(0),
-            };
-        }
+    // Kata kunci untuk Makanan Kurang Sihat (Junk/Goreng/Manis)
+    if (inputLower.includes('goreng') || inputLower.includes('nasi lemak') || inputLower.includes('manis') || inputLower.includes('fast food') || inputLower.includes('kek')) {
+        isHealthy = false;
+        calories = Math.floor(Math.random() * 400) + 500; // 500-900 kcal
+        proteins = Math.floor(Math.random() * 15) + 5;
+        fats = Math.floor(Math.random() * 30) + 15;
+        carbs = Math.floor(Math.random() * 60) + 40;
+    } 
+    // Kata kunci untuk Makanan Sihat (Sayur/Panggang/Buah)
+    else if (inputLower.includes('panggang') || inputLower.includes('sayur') || inputLower.includes('salad') || inputLower.includes('ikan') || inputLower.includes('ayam') || inputLower.includes('buah')) {
+        isHealthy = true;
+        calories = Math.floor(Math.random() * 200) + 200; // 200-400 kcal
+        proteins = Math.floor(Math.random() * 30) + 15;
+        fats = Math.floor(Math.random() * 10) + 2;
+        carbs = Math.floor(Math.random() * 30) + 20;
+    }
+    // Nilai Default
+    else {
+        isHealthy = true;
+        calories = 300;
+        proteins = 20;
+        fats = 10;
+        carbs = 30;
     }
     
-    // Fallback jika makanan tidak ditemui (menggunakan logik generik sedia ada)
+    // RDC (Recommended Daily Consumption) - Mock Calculation
+    const totalDailyCalories = 2000;
+    const rdcPercentage = Math.round((calories / totalDailyCalories) * 100);
+
     return {
-        isHealthy: true,
+        isHealthy,
         meal: foodInput,
-        calories: '300',
-        proteins: '20.0',
-        fats: '10.0',
-        carbs: '30.0',
-        rdc: '15',
+        calories: calories.toFixed(0),
+        proteins: proteins.toFixed(1),
+        fats: fats.toFixed(1),
+        carbs: carbs.toFixed(1),
+        rdc: rdcPercentage.toFixed(0),
     };
 };
 
@@ -165,7 +157,6 @@ const calculateNutrition = (foodInput) => {
 // ====================================================================
 
 const NutritionModal = ({ onClose, onLogMeal, mealTime }) => {
-// ... (Kekalkan NutritionModal sedia ada, pastikan ia menggunakan Bahasa Inggeris)
     const [foodInput, setFoodInput] = useState('');
     const [status, setStatus] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -254,30 +245,560 @@ const MealTimeSelector = ({ onSelect, onClose }) => {
 // --- 3. PAGES / COMPONENTS ---
 // ====================================================================
 
+// --- ActivityTrackerPage (KOMPONEN BARU: Activity Goal) ---
+const ActivityTrackerPage = ({ navigate }) => {
+    
+    // Status Aktiviti
+    const [isTracking, setIsTracking] = useState(false);
+    const [activityName, setActivityName] = useState('Cycling'); // Aktiviti semasa
+    const [currentDistanceKm, setCurrentDistanceKm] = useState(0.00);
+    const [currentSteps, setCurrentSteps] = useState(0);
+    const [currentCalories, setCurrentCalories] = useState(0);
+
+    // State untuk Log Masa (timestamp)
+    const [startTime, setStartTime] = useState(null); 
+    const [endTime, setEndTime] = useState(null);
+
+    // State untuk Log Masa Manual (untuk input UI)
+    const [manualStartTimeInput, setManualStartTimeInput] = useState('00:00'); 
+    const [manualEndTimeInput, setManualEndTimeInput] = useState('00:00');
+
+
+    const [geminiAnalysis, setGeminiAnalysis] = useState('Press "Start" to begin tracking.');
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+    // Data Mock Jadual
+    const mockSchedule = [
+        { name: 'Cycling', caloriesPerMinute: 8, icon: <Bike size={40} />, speedKMPH: 15, uiIcon: <Bike size={60} /> },
+        { name: 'Running', caloriesPerMinute: 10, icon: <Footprints size={40} />, speedKMPH: 8, uiIcon: <Footprints size={60} /> },
+        { name: 'Badminton', caloriesPerMinute: 6, icon: <Dribbble size={40} />, speedKMPH: 4, uiIcon: <Dribbble size={60} /> },
+        { name: 'Swimming', caloriesPerMinute: 7, icon: <Dumbbell size={40} />, speedKMPH: 3, uiIcon: <Dumbbell size={60} /> }, // Menggunakan Dumbbell untuk Swimming
+    ];
+
+    // MENGIRA JARAK DAN KALORI BERDASARKAN MASA (Logik Inti)
+    // Fungsi ini kini menerima start/end time secara eksplisit
+    const calculateMetrics = useCallback((start, end, activity) => {
+        if (!start || !end) return { duration: '0h 0m', distance: 0, calories: 0, distanceUnit: 'km', totalSteps: 0, durationHours: 0, timeLabel: '0h 0m' };
+
+        const durationMs = end - start;
+        let durationHours = durationMs / (1000 * 60 * 60);
+
+        if (durationHours <= 0) return { duration: '0h 0m', distance: 0, calories: 0, distanceUnit: 'km', totalSteps: 0, durationHours: 0, timeLabel: '0h 0m' };
+        
+        // --- Konstanta Simulasi Kelajuan Berbeza ---
+        const activityData = mockSchedule.find(a => a.name === activity);
+        const speedKMPH = activityData?.speedKMPH || 5; 
+        const calsPerMinute = activityData?.caloriesPerMinute || 5;
+
+        
+        // Pengiraan:
+        const totalMinutes = durationHours * 60;
+        let distance = durationHours * speedKMPH;
+        let distanceUnit = 'km';
+
+        // Tukar ke meter jika jarak sangat pendek
+        if (distance < 1) {
+            distance = distance * 1000;
+            distanceUnit = 'm';
+        }
+
+        const activityCalories = totalMinutes * calsPerMinute;
+        const steps = distance * 1300; // Simulasi langkah
+        const stepsCalories = steps * 0.04; // Kalori dari langkah
+        const totalCaloriesBurned = activityCalories + stepsCalories;
+
+
+        const hours = Math.floor(durationHours);
+        const minutes = Math.floor((durationHours - hours) * 60);
+
+        return {
+            duration: `${hours}h ${minutes}m`,
+            distance: distance.toFixed(2),
+            calories: totalCaloriesBurned.toFixed(0),
+            distanceUnit: distanceUnit,
+            totalSteps: Math.floor(steps),
+            durationHours: durationHours,
+            timeLabel: `${hours}h ${minutes}m`,
+        };
+    }, [mockSchedule]);
+
+    
+    // Auto-update UI semasa penjejakan
+    useEffect(() => {
+        let interval;
+        if (isTracking && startTime) {
+            interval = setInterval(() => {
+                // Pengiraan metrik semasa berjalan
+                const metrics = calculateMetrics(startTime, Date.now(), activityName);
+                setCurrentDistanceKm(parseFloat(metrics.distance));
+                setCurrentCalories(parseInt(metrics.calories));
+                setCurrentSteps(parseInt(metrics.totalSteps));
+            }, 1000); // Kemas kini setiap saat
+        }
+        return () => clearInterval(interval);
+    }, [isTracking, startTime, activityName, calculateMetrics]);
+
+
+    const handleLogActivity = async () => {
+        // Tentukan masa yang akan digunakan (Log Manual diutamakan)
+        let actualStartTime, actualEndTime;
+
+        // Mendapatkan metrik berdasarkan input manual
+        const today = new Date().toDateString();
+        actualStartTime = new Date(today + ' ' + manualStartTimeInput).getTime();
+        actualEndTime = new Date(today + ' ' + manualEndTimeInput).getTime();
+
+        // Check if end time is before start time (meaning crossing midnight)
+        if (actualEndTime <= actualStartTime) actualEndTime += 86400000; // Tambah 24 jam
+
+        const metrics = calculateMetrics(actualStartTime, actualEndTime, activityName);
+        
+        if (metrics.durationHours <= 0) {
+            alert('Aktiviti mesti mempunyai durasi masa yang sah untuk log manual.');
+            return;
+        }
+        
+        // --- Log Aktiviti ---
+        setCurrentDistanceKm(parseFloat(metrics.distance));
+        setCurrentCalories(parseInt(metrics.calories));
+        setCurrentSteps(parseInt(metrics.totalSteps)); 
+        
+        // Panggil Gemini untuk analisis
+        setIsAnalyzing(true);
+        setGeminiAnalysis("Analyzing your performance... 🤖");
+
+        const prompt = `Analyze this user's fitness performance: Activity: ${activityName}, Duration: ${metrics.durationHours} hours, Distance: ${metrics.distance} ${metrics.distanceUnit}, Calories Burned: ${metrics.calories}. Provide a concise performance analysis (1 paragraph) and one specific suggestion for improvement for the next session. Respond in English.`;
+        const systemInstruction = "You are a personalized, encouraging AI Fitness Coach. Your analysis must be positive yet informative.";
+
+        const analysis = await fetchGeminiResponse(prompt, systemInstruction);
+        setGeminiAnalysis(analysis);
+        setIsAnalyzing(false);
+
+        // Reset inputs setelah log
+        setManualStartTimeInput('00:00');
+        setManualEndTimeInput('00:00');
+        alert(`Activity Logged: ${activityName}, ${metrics.distance} ${metrics.distanceUnit}, ${metrics.calories} kcal. Analysis received.`);
+    };
+    
+    // Logik Butang Mula/Berhenti
+    const handleStartStop = (name) => {
+        if (!isTracking) {
+            // MULA MENJEJAK
+            setActivityName(name);
+            setStartTime(Date.now());
+            setEndTime(null);
+            setIsTracking(true);
+            setCurrentDistanceKm(0.00); // Reset UI apabila mula
+            setCurrentSteps(0);
+            setCurrentCalories(0);
+            setGeminiAnalysis('Tracking in progress. Press Stop to complete session.');
+
+        } else if (activityName === name) {
+            // BERHENTI MENJEJAK AKTIVITI SAMA
+            const stopTime = Date.now();
+            setEndTime(stopTime);
+            setIsTracking(false);
+            
+            // Panggil Log Activity untuk mengira dan mendapatkan analisis AI (Menggunakan Start/Stop Logik)
+            const metrics = calculateMetrics(startTime, stopTime, activityName);
+            
+            // Kita kemas kini UI dahulu
+            setCurrentDistanceKm(parseFloat(metrics.distance));
+            setCurrentCalories(parseInt(metrics.calories));
+            setCurrentSteps(parseInt(metrics.totalSteps)); 
+
+            // Panggil Gemini untuk analisis
+            setIsAnalyzing(true);
+            setGeminiAnalysis("Analyzing your performance... 🤖");
+
+            const prompt = `Analyze this user's fitness performance: Activity: ${activityName}, Duration: ${metrics.durationHours} hours, Distance: ${metrics.distance} ${metrics.distanceUnit}, Calories Burned: ${metrics.calories}. Provide a concise performance analysis (1 paragraph) and one specific suggestion for improvement for the next session. Respond in English.`;
+            const systemInstruction = "You are a personalized, encouraging AI Fitness Coach. Your analysis must be positive yet informative.";
+
+            fetchGeminiResponse(prompt, systemInstruction).then(analysis => {
+                setGeminiAnalysis(analysis);
+                setIsAnalyzing(false);
+                alert(`Activity Logged: ${activityName}, ${metrics.distance} ${metrics.distanceUnit}, ${metrics.calories} kcal. Analysis received.`);
+            });
+            
+            // Reset state masa start/stop
+            setStartTime(null);
+            setEndTime(null);
+
+        }
+    };
+    
+    // UI Helpers
+    const activityData = mockSchedule.find(a => a.name === activityName);
+    const mainIcon = activityData ? activityData.uiIcon : <Activity size={60} />;
+    
+    const timeDisplay = useMemo(() => {
+        // Jika sedang menjejak, tunjukkan masa real-time
+        if (isTracking && startTime) {
+            const currentDurationMs = Date.now() - startTime;
+            const hours = Math.floor(currentDurationMs / (1000 * 60 * 60));
+            const minutes = Math.floor((currentDurationMs / (1000 * 60)) % 60);
+            const seconds = Math.floor((currentDurationMs / 1000) % 60);
+            return `${hours}h ${minutes}m ${seconds}s`; // Tambah saat untuk feedback real-time
+        }
+        
+        // Paparkan durasi 0h 0m jika belum ada log atau sesi belum tamat sepenuhnya
+        const metrics = calculateMetrics(startTime, endTime, activityName);
+        if (currentDistanceKm > 0 && metrics.duration !== '0h 0m') {
+             return metrics.duration;
+        }
+        return '0h 0m';
+    }, [isTracking, startTime, endTime, activityName, currentDistanceKm, calculateMetrics]);
+
+    // Menghasilkan metrik untuk Log Manual secara dinamik
+    const manualMetrics = calculateMetrics(
+        new Date(new Date().toDateString() + ' ' + manualStartTimeInput).getTime(),
+        new Date(new Date().toDateString() + ' ' + manualEndTimeInput).getTime(),
+        activityName
+    );
+
+    const getCurrentIcon = () => {
+        const activity = mockSchedule.find(a => a.name === activityName);
+        return activity ? activity.uiIcon : <Activity size={60} />;
+    };
+
+
+    return (
+        <div className="activity-page-container">
+            {/* Header */}
+            <header className="activity-header">
+                <button onClick={() => navigate('dashboard')} className="back-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+                </button>
+                <h1 className="activity-title">Activity Alert</h1>
+                <ChevronDown className="text-gray-500 cursor-pointer" size={24} />
+            </header>
+
+            <main className="activity-main-content">
+                
+                <h2 className="section-title">Activities</h2>
+                
+                {/* 1. KAD AKTIVITI TERKINI (Current Activity Stats) */}
+                <div className="current-activity-card" style={{backgroundColor: '#F47C7C' }}>
+                    <div className="activity-details">
+                        <h3 className="activity-name">{activityName}</h3>
+                        <p className="activity-distance">{currentDistanceKm.toFixed(2)} km</p>
+                        <p className="activity-time">Time: {timeDisplay}</p>
+                        
+                        {/* Butang Checkout hanya dipaparkan jika sesi tamat */}
+                        {(!isTracking && currentDistanceKm > 0 && startTime && endTime) && (
+                            <button onClick={handleLogActivity} className="checkout-btn">Checkout</button>
+                        )}
+                    </div>
+                    <div className="activity-icon-large">
+                         {getCurrentIcon()}
+                    </div>
+                </div>
+
+                {/* 2. KAD STATISTIK HARIAN */}
+                <div className="daily-stats-card-grid">
+                    <div className="stat-item">
+                        <Footprints size={30} className="stat-icon-foot" />
+                        <p className="stat-value-sm">{currentSteps}</p>
+                        <p className="stat-label-sm">Total Steps</p>
+                    </div>
+                    <div className="stat-item">
+                        <Flame size={30} className="stat-icon-fire" />
+                        <p className="stat-value-sm">{currentCalories}</p>
+                        <p className="stat-label-sm">Total Calories</p>
+                    </div>
+                </div>
+
+                <h2 className="section-title mt-8">My Schedule</h2>
+
+                {/* 3. JADUAL AKTIVITI (SECTION 2: My Schedule) */}
+                <div className="schedule-list">
+                    {mockSchedule.map((item, index) => (
+                        <div key={index} className="schedule-card" style={{backgroundColor: 'white', color: 'black'}}>
+                            <div className="schedule-info">
+                                <span className="schedule-name">{item.name}</span>
+                                <span className="cals-per-min-label">({item.caloriesPerMinute} cals/min)</span>
+
+                                <button 
+                                    onClick={() => handleStartStop(item.name)} 
+                                    className={`start-btn ${isTracking && activityName === item.name ? 'stop-btn' : ''}`}
+                                    style={{backgroundColor: isTracking && activityName === item.name ? '#FF69B4' : '#D32F2F'}}
+                                    disabled={isTracking && activityName !== item.name}
+                                >
+                                    {isTracking && activityName === item.name ? 'Stop' : 'Start'}
+                                </button>
+                            </div>
+                            <div className="schedule-icon" style={{color: '#C30000'}}>{item.icon}</div>
+                        </div>
+                    ))}
+                </div>
+                
+                {/* GEMINI AI ANALISIS */}
+                <div className="gemini-analysis-box">
+                    <h3 className="analysis-title"><MessageSquareText size={20} className="inline-block mr-2"/> Performance Analysis</h3>
+                    <p className="analysis-text">{isAnalyzing ? 'Analyzing your performance... 🧠' : geminiAnalysis}</p>
+                </div>
+                
+                {/* LOG DURATION MANUAL (Diletakkan di bawah untuk UI yang kemas) */}
+                <div className="time-log-container">
+                    <h3 className="time-log-title"><Watch size={20} className="inline-block mr-2 text-gray-700"/> Manual Time Log</h3>
+                    <p className="text-sm text-gray-600 mb-4">Log masa untuk mengira jarak & kalori.</p>
+                    <div className="time-input-group">
+                        <label>Start Time:</label>
+                        <input type="time" value={manualStartTimeInput} onChange={(e) => setManualStartTimeInput(e.target.value)} className="time-input" />
+                    </div>
+                    <div className="time-input-group">
+                        <label>End Time:</label>
+                        <input type="time" value={manualEndTimeInput} onChange={(e) => setManualEndTimeInput(e.target.value)} className="time-input" />
+                    </div>
+                    
+                    {/* Hasil Pengiraan Durasi */}
+                    <div className="calculation-result">
+                        <p>Duration: **{manualMetrics.duration}**</p>
+                        <p>Est. Distance: **{manualMetrics.distance} {manualMetrics.distanceUnit}**</p>
+                    </div>
+
+                    <button onClick={handleLogActivity} className="log-activity-btn" disabled={manualMetrics.distance <= 0 || isAnalyzing}>
+                        Log Manual Activity
+                    </button>
+                </div>
+
+            </main>
+        </div>
+    );
+};
 // --- Placeholder Components ASAS (Wajib ada) ---
+
 const WelcomePage = ({ navigate }) => (
-// ... (Kekalkan WelcomePage sedia ada) ...
-    <div className="p-8 text-center bg-gray-50 min-h-screen">
-        <h2 className="text-3xl font-bold text-indigo-700 mt-20">Welcome to HealthApp!</h2>
-        <p className="mt-4 text-gray-600">This is the landing page. Navigate using the simulated links below.</p>
-        <div className="mt-10 space-y-4">
-            <button onClick={() => navigate('login')} className="btn-placeholder bg-purple-500">Login</button>
-            <button onClick={() => navigate('dashboard')} className="btn-placeholder bg-red-500">Go to Dashboard</button>
+    <div className="welcome-page-container">
+        <div className="welcome-card floating-card">
+            <h1 className="welcome-title">Welcome to WellSpace!</h1> {/* <-- PERUBAHAN NAMA APLIKASI */}
+            <p className="welcome-subtitle">Your personalized wellness journey starts here.</p>
+            
+            <div className="welcome-button-group">
+                <button onClick={() => navigate('login')} className="btn-lg btn-login">
+                    Login
+                </button>
+                <button onClick={() => navigate('register')} className="btn-lg btn-register">
+                    Register
+                </button>
+            </div>
         </div>
     </div>
 );
 
-const Login = ({ navigate }) => (
-// ... (Kekalkan Login sedia ada) ...
-    <div className="p-8 text-center bg-white min-h-screen">
-        <h2 className="text-2xl font-bold mt-20">Login Screen</h2>
-        <p className="mt-4 text-gray-600">Simulated login. Would navigate to Dashboard on success.</p>
-        <button onClick={() => navigate('welcome')} className="btn-placeholder mt-8 bg-gray-400">Back to Welcome</button>
-    </div>
-);
+// --- Register Page (KOMPONEN BARU: Signup) ---
+const Register = ({ navigate }) => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [retypePassword, setRetypePassword] = useState('');
+    const [status, setStatus] = useState('');
+
+    const handleRegister = () => {
+        setStatus('Processing registration...');
+        if (!email || !password || !retypePassword) {
+            setStatus('Please fill in all fields.');
+            return;
+        }
+        if (password !== retypePassword) {
+            setStatus('Passwords do not match.');
+            return;
+        }
+        // Logik Pendaftaran Firebase sebenar akan berada di sini.
+        // Untuk tujuan demo, navigasi ke Login selepas simulasi kejayaan
+        setTimeout(() => {
+            setStatus('Registration successful! Redirecting to Login...');
+            navigate('login');
+        }, 1500);
+    };
+
+    return (
+        <div className="login-page-container"> {/* Menggunakan gaya container yang sama */}
+            <div className="login-form-card floating-card">
+                <header className="header text-center">
+                    <h1 className="text-red-700">We Say Hello!</h1>
+                    <p className="text-gray-600">Register with your email and preferred password.</p>
+                </header>
+
+                <div className="input-group-icon">
+                    <Mail className="input-icon" size={20} />
+                    <input 
+                        type="email" 
+                        placeholder="Email Address" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                </div>
+
+                <div className="input-group-icon">
+                    <Lock className="input-icon" size={20} />
+                    <input 
+                        type="password" 
+                        placeholder="Create a Password" 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </div>
+
+                <div className="input-group-icon">
+                    <Lock className="input-icon" size={20} />
+                    <input 
+                        type="password" 
+                        placeholder="Retype Password" 
+                        value={retypePassword}
+                        onChange={(e) => setRetypePassword(e.target.value)}
+                    />
+                </div>
+                
+                {/* Butang Daftar (Menggunakan gaya yang sama seperti Log In) */}
+                <button onClick={handleRegister} className="btn-primary">
+                    Sign Up
+                </button>
+                
+                {status && <p className="status-message-auth mt-4 text-sm font-semibold">{status}</p>}
+
+                <div className="footer-link">
+                    Already Have an Account? <a onClick={() => navigate('login')} className="text-red-500 cursor-pointer font-semibold">Enter</a>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+// --- Login Page (Diubahsuai dengan reka bentuk Floating Card) ---
+const Login = ({ navigate }) => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [status, setStatus] = useState('');
+
+    // Fungsi simulasi login
+    const handleLogin = () => {
+        setStatus('Logging in...');
+        if (!email || !password) {
+            setStatus('Please fill in both email and password.');
+            return;
+        }
+
+        // Simulasi Logik Login: Autentikasi sebenar akan berlaku di sini
+        // Untuk tujuan demo: Berjaya jika kedua-dua medan diisi, dan terus ke dashboard.
+        setTimeout(() => {
+            setStatus('Login successful! Redirecting to Dashboard...');
+            navigate('dashboard');
+        }, 1500);
+    };
+
+    return (
+        <div className="login-page-container">
+            <div className="login-form-card floating-card">
+                <header className="header text-center">
+                    <h1 className="text-red-700">We Say Hello!</h1>
+                    <p className="text-gray-600">Welcome back. Use your email and password to login</p>
+                </header>
+
+                <div className="input-group-icon">
+                    <Mail className="input-icon" size={20} />
+                    <input 
+                        type="email" 
+                        placeholder="Email Address" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                </div>
+
+                <div className="input-group-icon">
+                    <Lock className="input-icon" size={20} />
+                    <input 
+                        type="password" 
+                        placeholder="Password" 
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </div>
+
+                <div className="forgot-pass">
+                    <a onClick={() => navigate('forgot-password')} className="text-red-500 cursor-pointer text-sm font-semibold">Forgot Password?</a>
+                </div>
+
+                <button onClick={handleLogin} className="btn-primary">
+                    Log In
+                </button>
+                
+                {status && <p className="status-message-auth mt-4 text-sm font-semibold">{status}</p>}
+
+                <div className="footer-link">
+                    Don't Have an Account? <a onClick={() => navigate('register')} className="text-red-500 cursor-pointer font-semibold">Sign Up</a>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+// --- KOMPONEN BARU: ForgotPasswordPage ---
+const ForgotPasswordPage = ({ navigate }) => {
+    const [identifier, setIdentifier] = useState('');
+    const [status, setStatus] = useState('');
+
+    const handleSendLink = () => {
+        setStatus('Sending request...');
+        if (!identifier.trim()) {
+            setStatus('Please enter your email, phone number, or username.');
+            return;
+        }
+
+        // Logik Firebase untuk menghantar pautan penetapan semula akan diletakkan di sini.
+        setTimeout(() => {
+            setStatus('A reset link has been sent to your email.');
+            // Setelah berjaya, kembali ke Login
+            setTimeout(() => navigate('login'), 2500);
+        }, 1500);
+    };
+
+    return (
+        <div className="forgot-password-page-container">
+            <div className="forgot-card">
+                <header className="forgot-header">
+                    <h1 className="logo-title">WELL SPACE</h1>
+                    <p className="logo-subtitle">Thinking Everything</p>
+                </header>
+
+                <div className="forgot-body">
+                    <h2 className="title-oopss">OoPpsss!!!</h2>
+                    <h3 className="subtitle-forgot">I forgot</h3>
+
+                    <div className="input-group-icon mt-8">
+                        <User className="input-icon" size={20} />
+                        <input 
+                            type="text" 
+                            placeholder="Username, Email or Phone Number" 
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
+                            className="reset-input"
+                        />
+                    </div>
+
+                    <button onClick={handleSendLink} className="send-btn">
+                        Send
+                    </button>
+                    
+                    <p className="instruction-text">
+                        Enter your email, phone, or username and we'll send you a link to change a new password
+                    </p>
+
+                    {status && <p className={`status-message-reset mt-4 text-sm font-semibold ${status.includes('Error') ? 'text-red-500' : 'text-green-500'}`}>{status}</p>}
+
+                </div>
+                
+                <div className="forgot-footer">
+                    Don't have an account? <a onClick={() => navigate('register')} className="register-link">Register</a>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 const ActivityPage = () => (
-// ... (Kekalkan ActivityPage sedia ada) ...
     <div className="p-8 text-center bg-yellow-50 min-h-screen">
         <h2 className="text-2xl font-bold mt-20">Activity Goal Tracking</h2>
         <p className="mt-4 text-gray-600">Log your runs, steps, and exercises here.</p>
@@ -285,7 +806,6 @@ const ActivityPage = () => (
 );
 
 const ProfilePage = () => (
-// ... (Kekalkan ProfilePage sedia ada) ...
     <div className="p-8 text-center bg-green-50 min-h-screen">
         <h2 className="text-2xl font-bold mt-20">User Profile / Settings</h2>
         <p className="mt-4 text-gray-600">Manage account information and preferences.</p>
@@ -295,7 +815,6 @@ const ProfilePage = () => (
 
 // --- KOMPONEN BARU: RemindersPage ---
 const RemindersPage = ({ navigate }) => {
-// ... (Kekalkan RemindersPage sedia ada) ...
     // State untuk menguruskan togol bagi setiap amaran
     const [reminders, setReminders] = useState({
         breakfast: true,
@@ -345,7 +864,7 @@ const RemindersPage = ({ navigate }) => {
                                     checked={reminders[item.key]} 
                                     onChange={() => handleToggle(item.key)} 
                                 />
-                                <span className="slider round" style={{ backgroundColor: reminders[item.key] ? item.color : '#ccc' }}></span>
+                                <span className="slider round"></span>
                             </label>
                         </div>
                     ))}
@@ -362,7 +881,6 @@ const RemindersPage = ({ navigate }) => {
 
 // --- KOMPONEN BARU: SleepTrackerPage (Peta ke /sleep) ---
 const SleepTrackerPage = ({ navigate }) => {
-// ... (Kekalkan SleepTrackerPage sedia ada) ...
     const today = new Date();
     const formattedDate = today.toLocaleDateString('en-US', { day: 'numeric', month: 'long' });
     const formattedDay = today.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
@@ -491,7 +1009,7 @@ const SleepTrackerPage = ({ navigate }) => {
                         <p className="stat-value">{sleepQuality}</p>
                         <div className="progress-bar-wrap">
                             {/* Bar kemajuan berdasarkan Quality */}
-                            <div className="progress-bar" style={{ width: sleepQuality }}></div>
+                            <div className="progress-bar" style={{ width: `${sleepQuality}` }}></div>
                         </div>
                     </div>
                     <div className="stat-card duration-card">
@@ -759,6 +1277,7 @@ const DiaryEntryPage = ({ navigate, routeParams, userId }) => {
     const [entry, setEntry] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
+    const [isAnalyzing, setIsAnalyzing] = useState(false); // State untuk Gemini
 
     const handleSave = async () => {
         if (!entry.trim()) {
@@ -772,6 +1291,20 @@ const DiaryEntryPage = ({ navigate, routeParams, userId }) => {
         // Tentukan ID aplikasi secara dalaman untuk keselamatan
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
+        // 1. Panggil Gemini untuk ringkasan
+        setIsAnalyzing(true);
+        const prompt = `Analyze the emotional tone of this diary entry and provide a concise one-sentence summary and a related motivational quote (2-3 sentences total). The user selected the mood: ${mood}. The entry is: "${entry}". Respond in English.`;
+        const systemInstruction = "You are a supportive Wellness Coach AI. Your response must be comforting and actionable, starting with the summary and ending with a quote.";
+        
+        let geminiResponse = '';
+        try {
+            geminiResponse = await fetchGeminiResponse(prompt, systemInstruction);
+        } catch (e) {
+            geminiResponse = "Could not generate analysis.";
+        }
+        setIsAnalyzing(false);
+
+
         if (db && userId) {
             try {
                 // Konfigurasi path Firestore (Private Data)
@@ -784,9 +1317,10 @@ const DiaryEntryPage = ({ navigate, routeParams, userId }) => {
                     date: firebase.firestore.FieldValue.serverTimestamp(),
                     type: 'Diary',
                     color: color,
+                    analysis: geminiResponse, // Simpan analisis Gemini
                 });
 
-                setSaveMessage(`Berjaya disimpan! ${quote}`);
+                setSaveMessage(`Berjaya disimpan! ${geminiResponse}`);
                 setTimeout(() => {
                     // Navigasi ke History page setelah berjaya
                     navigate('history');
@@ -798,7 +1332,7 @@ const DiaryEntryPage = ({ navigate, routeParams, userId }) => {
             }
         } else {
             // Mock Save (Jika Firebase tidak berfungsi)
-            setSaveMessage(`Mock Save Berjaya! Mood: ${mood}. ${quote}`);
+            setSaveMessage(`Mock Save Berjaya! Mood: ${mood}. ${geminiResponse}`);
             setTimeout(() => navigate('history'), 2500);
         }
     };
@@ -823,16 +1357,16 @@ const DiaryEntryPage = ({ navigate, routeParams, userId }) => {
                         setSaveMessage('');
                     }}
                     className="diary-textarea-style"
-                    disabled={isSaving}
+                    disabled={isSaving || isAnalyzing}
                 />
 
                 {/* Butang Simpan */}
                 <button 
                     onClick={handleSave} 
                     className="diary-save-btn" 
-                    disabled={isSaving || !entry.trim()}
+                    disabled={isSaving || !entry.trim() || isAnalyzing}
                 >
-                    {isSaving ? 'Saving...' : 'Save'}
+                    {isAnalyzing ? 'Analyzing... 🧠' : isSaving ? 'Saving...' : 'Save (Get Analysis ✨)'}
                 </button>
 
                 {/* Mesej Status/Motivasi Selepas Simpan */}
@@ -860,6 +1394,7 @@ const HistoryPage = ({ userId, isAuthReady, navigate }) => {
         const collectionPath = `artifacts/${appId}/users/${userId}/diary_logs`;
         
         // Listener masa nyata (onSnapshot) untuk data log
+            // ... (Kekalkan logika Firestore sedia ada) ...
         const unsubscribe = db.collection(collectionPath)
             .orderBy('date', 'desc')
             .limit(10)
@@ -877,6 +1412,7 @@ const HistoryPage = ({ userId, isAuthReady, navigate }) => {
                         entry: data.entry || 'No entry',
                         date: date,
                         color: moodColor,
+                        analysis: data.analysis || '', // Mengambil analisis Gemini
                     };
                 });
                 setRecentLogs(logs);
@@ -909,6 +1445,7 @@ const HistoryPage = ({ userId, isAuthReady, navigate }) => {
                             <div key={log.id} className="log-card" style={{borderColor: log.color}}>
                                 <span className="log-type" style={{color: log.color}}>{log.type}: {log.mood}</span>
                                 <p className="log-entry">{log.entry}</p>
+                                {log.analysis && <p className="analysis-entry mt-2 text-xs font-medium italic" style={{color: log.color}}>{log.analysis}</p>}
                                 <span className="log-date">{log.date}</span>
                             </div>
                         ))
@@ -1144,10 +1681,15 @@ const App = () => {
                 return <WelcomePage navigate={navigate} />;
             case 'login':
                 return <Login navigate={navigate} />;
+            case 'register': // ROUTE BARU: Register
+                return <Register navigate={navigate} />;
+            case 'forgot-password': // ROUTE BARU: Forgot Password
+                return <ForgotPasswordPage navigate={navigate} />;
             case 'dashboard':
             case 'menu': 
                 return <DashboardContent metrics={metrics} featureCards={featureCards} logoSvg={logoSvg} navigate={navigate} />;
             case 'activity':
+                return <ActivityTrackerPage navigate={navigate} />; // MENGEMASKINI: Menghalakan ke ActivityTrackerPage
             case 'weekly-progress':
                 return <ActivityPage />;
             case 'reminders':
@@ -1165,7 +1707,7 @@ const App = () => {
                 return <HistoryPage userId={userId} isAuthReady={isAuthReady} navigate={navigate} />; 
             case 'profile':
             case 'settings':
-                return <ProfilePage />;
+                return <ProfilePage />; // Guna ProfilePage sebagai placeholder untuk laluan awam lain
             case 'search':
                 return (
                     <div className="p-8 text-center bg-gray-100 min-h-screen">
@@ -1226,6 +1768,201 @@ const App = () => {
                     stroke: #C30000;
                 }
                 
+                /* --- LOGIN & WELCOME STYLES --- */
+                .welcome-page-container, .login-page-container {
+                    min-height: 100vh;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    background: linear-gradient(to bottom right, #ffe14c, #ff5c77);
+                }
+                .welcome-card {
+                    padding: 40px;
+                    text-align: center;
+                }
+                .welcome-title {
+                    font-size: 2.5rem;
+                    font-weight: 900;
+                    color: #C30000;
+                    margin-bottom: 10px;
+                }
+                .welcome-subtitle {
+                    font-size: 1.1rem;
+                    color: #555;
+                    margin-bottom: 30px;
+                }
+                .welcome-button-group button {
+                    margin-bottom: 15px;
+                }
+                .btn-lg {
+                    padding: 15px;
+                    border-radius: 30px;
+                    font-size: 1.1rem;
+                    font-weight: bold;
+                    width: 100%;
+                    cursor: pointer;
+                }
+                .btn-login {
+                    background: #7E57C2;
+                    color: white;
+                    border: none;
+                    box-shadow: 0 4px 10px rgba(126, 87, 194, 0.4);
+                }
+                .btn-register {
+                    background: white;
+                    color: #7E57C2;
+                    border: 2px solid #7E57C2;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                }
+
+                .login-form-card {
+                    padding: 40px 30px;
+                }
+                .header h1 {
+                    font-size: 2.2rem;
+                    font-weight: 800;
+                    margin-bottom: 5px;
+                }
+                .header p {
+                    line-height: 1.5;
+                    margin-bottom: 40px;
+                }
+                .input-group-icon {
+                    position: relative;
+                    margin-bottom: 25px; 
+                }
+                .input-icon {
+                    position: absolute;
+                    left: 15px; 
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: #7e57c2; 
+                }
+                .login-form-card input {
+                    width: 100%;
+                    padding: 15px 15px 15px 45px;
+                    border: 1px solid #ffccff; 
+                    border-radius: 30px; 
+                    background: #fff;
+                    box-shadow: 0 4px 10px rgba(255, 179, 219, 0.25);
+                    box-sizing: border-box;
+                    outline: none;
+                }
+                .forgot-pass {
+                    text-align: right; 
+                    margin-bottom: 30px; 
+                }
+                .btn-primary {
+                    width: 100%;
+                    padding: 15px;
+                    border: none;
+                    border-radius: 30px;
+                    background: linear-gradient(90deg, #5e35b1, #7e57c2); 
+                    color: white;
+                    font-weight: bold;
+                    margin-top: 10px;
+                    box-shadow: 0 8px 20px rgba(94, 53, 177, 0.4);
+                    cursor: pointer;
+                }
+                .footer-link {
+                    text-align: center; 
+                    margin-top: 30px; 
+                    color: #888;
+                }
+                
+                /* --- FORGOT PASSWORD STYLES (BARU) --- */
+                .forgot-password-page-container {
+                    min-height: 100vh;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    background: linear-gradient(180deg, #FFC0CB 0%, #FF69B4 100%); /* Pink Gradien */
+                    padding: 20px;
+                    position: relative;
+                }
+                .forgot-card {
+                    width: 100%;
+                    max-width: 400px;
+                    text-align: center;
+                    z-index: 10;
+                }
+                .forgot-header {
+                    margin-bottom: 50px;
+                }
+                .logo-title {
+                    font-size: 2rem;
+                    font-weight: 900;
+                    color: #C30000;
+                    margin: 0;
+                }
+                .logo-subtitle {
+                    font-size: 0.9rem;
+                    color: #4A4A4A;
+                }
+                .forgot-body {
+                    background: white;
+                    border-radius: 20px;
+                    padding: 40px 30px;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                }
+                .title-oopss {
+                    font-size: 2.5rem;
+                    font-weight: 900;
+                    color: #C30000;
+                    margin-bottom: 5px;
+                }
+                .subtitle-forgot {
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    color: #7E57C2;
+                    margin-bottom: 30px;
+                }
+                .forgot-body .input-group-icon {
+                    margin-bottom: 30px;
+                }
+                .forgot-body .input-icon {
+                    color: #C30000;
+                }
+                .reset-input {
+                    width: 100%;
+                    padding: 15px;
+                    border: 1px solid #ddd;
+                    border-radius: 30px;
+                    box-sizing: border-box;
+                    text-align: center;
+                    font-size: 1rem;
+                }
+                .send-btn {
+                    width: 50%;
+                    padding: 12px;
+                    border: none;
+                    border-radius: 30px;
+                    background: #FF69B4; /* Pink */
+                    color: white;
+                    font-size: 1.1rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    box-shadow: 0 4px 10px rgba(255, 105, 180, 0.5);
+                    margin-bottom: 20px;
+                }
+                .instruction-text {
+                    font-size: 0.85rem;
+                    color: #555;
+                    line-height: 1.4;
+                    margin-bottom: 40px;
+                }
+                .forgot-footer {
+                    color: #4A4A4A;
+                    font-size: 0.9rem;
+                    margin-top: 30px;
+                }
+                .register-link {
+                    color: #C30000;
+                    font-weight: 600;
+                    cursor: pointer;
+                }
+
+
                 /* --- DASHBOARD HOME SCREEN STYLES --- */
                 .dashboard-container {
                     padding: 20px 25px 90px 25px;
@@ -1233,6 +1970,7 @@ const App = () => {
                     box-sizing: border-box;
                     background: linear-gradient(180deg, #FFFDE7 0%, #FFE0F0 40%, #E0E0FF 100%);
                 }
+                /* ... (Gaya Dashboard, Logik Nutrisi, Mood, Hydration, Sleep kekal) ... */
                 .top-header {
                     display: flex;
                     justify-content: space-between;
@@ -2112,7 +2850,7 @@ const App = () => {
                     background: white;
                     border-radius: 15px;
                     padding: 20px;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
                     text-align: left;
                 }
                 .weekly-sleep-title {
@@ -2157,6 +2895,254 @@ const App = () => {
                     border: 1px solid #ccc;
                     border-radius: 5px;
                     text-align: center;
+                }
+                
+                /* --- ACTIVITY PAGE STYLES (BARU) --- */
+
+                .activity-page-container {
+                    padding: 20px 25px 90px 25px;
+                    min-height: 100vh;
+                    box-sizing: border-box;
+                    background: linear-gradient(180deg, #FFEBEB 0%, #FFD1E0 100%); /* Gradien Merah Jambu Lembut */
+                }
+                .activity-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 30px;
+                }
+                .activity-title {
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    color: #C30000;
+                    margin: 0 auto;
+                }
+                .section-title {
+                    font-size: 1.3rem;
+                    font-weight: 700;
+                    color: #4A4A4A;
+                    margin-bottom: 15px;
+                    text-align: left;
+                }
+                /* Current Activity Card */
+                .current-activity-card {
+                    background-color: #F47C7C; /* Warna Merah Jambu/Coral */
+                    border-radius: 15px;
+                    padding: 20px;
+                    margin-bottom: 20px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                    display: flex;
+                    flex-direction: column; /* Ubah ke susun atur menegak */
+                    align-items: flex-start;
+                    color: white;
+                    position: relative;
+                    min-height: 180px;
+                }
+                .activity-details {
+                    flex-grow: 1;
+                    padding-right: 15px;
+                }
+                .activity-name {
+                    font-size: 1.2rem;
+                    font-weight: 800;
+                    margin-bottom: 5px;
+                }
+                .activity-distance {
+                    font-size: 2.8rem; /* Lebih besar */
+                    font-weight: 900;
+                    line-height: 1;
+                    margin-bottom: 5px;
+                }
+                .activity-time {
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                    margin-bottom: 15px;
+                }
+                .checkout-btn {
+                    background: #C30000;
+                    color: white;
+                    border: none;
+                    border-radius: 20px;
+                    padding: 8px 15px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    font-size: 0.9rem;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                }
+                .activity-icon-large {
+                    color: white;
+                    opacity: 0.9;
+                    position: absolute; /* Ikon terapung di kanan atas */
+                    top: 20px;
+                    right: 20px;
+                }
+
+                /* Daily Stats Card Grid */
+                .daily-stats-card-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 15px;
+                    margin-bottom: 30px;
+                }
+                .daily-stats-card-grid .stat-item {
+                    background: #FFD1A6; /* Oren Lembut */
+                    border-radius: 15px;
+                    padding: 15px;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                    text-align: center;
+                }
+                .stat-icon-foot, .stat-icon-fire {
+                    color: #C30000;
+                    margin-bottom: 5px;
+                }
+                .stat-value-sm {
+                    font-size: 1.4rem;
+                    font-weight: 800;
+                    color: #4A4A4A;
+                    line-height: 1.2;
+                }
+                .stat-label-sm {
+                    font-size: 0.8rem;
+                    color: #777;
+                    font-weight: 600;
+                }
+
+                /* Schedule List */
+                .schedule-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px; /* Kurangkan gap */
+                }
+                .schedule-card {
+                    background: white;
+                    border-radius: 15px;
+                    padding: 15px 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                    border: 1px solid #FFC0CB; /* Garisan luaran lembut */
+                    position: relative;
+                }
+                .schedule-info {
+                    text-align: left;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+                .schedule-name {
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    color: #333;
+                    display: block;
+                    margin-bottom: 5px;
+                }
+                .cals-per-min-label {
+                    font-size: 0.8rem;
+                    color: #555;
+                    margin-bottom: 10px;
+                }
+                .start-btn {
+                    padding: 5px 15px;
+                    border: none;
+                    border-radius: 20px;
+                    background: #D32F2F;
+                    color: white;
+                    font-size: 0.85rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                }
+                .stop-btn {
+                    background: #FF69B4; /* Pink untuk stop */
+                }
+                .schedule-icon {
+                    color: #C30000;
+                    opacity: 0.9;
+                    position: absolute;
+                    right: 20px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                }
+                
+                /* Log Masa Manual (Baru) */
+                .time-log-container {
+                    background: #FFF;
+                    border-radius: 15px;
+                    padding: 20px;
+                    margin-top: 30px;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                    text-align: left;
+                }
+                .time-log-title {
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    color: #4A4A4A;
+                    margin-bottom: 20px;
+                }
+                .time-input-group {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 15px;
+                }
+                .time-input-group label {
+                    font-weight: 500;
+                    color: #555;
+                }
+                .time-input {
+                    padding: 8px 10px;
+                    border: 1px solid #ddd;
+                    border-radius: 8px;
+                    width: 150px;
+                    box-sizing: border-box;
+                }
+                .calculation-result {
+                    text-align: center;
+                    margin: 15px 0;
+                    font-size: 1rem;
+                    font-weight: 500;
+                    color: #333;
+                }
+                .calculation-result strong {
+                    font-weight: 800;
+                    color: #000;
+                }
+                .log-activity-btn {
+                    width: 100%;
+                    padding: 12px;
+                    border: none;
+                    border-radius: 25px;
+                    background: #000;
+                    color: white;
+                    font-weight: bold;
+                    cursor: pointer;
+                    font-size: 1rem;
+                }
+                .log-activity-btn:disabled {
+                    background: #ccc;
+                    cursor: not-allowed;
+                }
+                
+                /* GEMINI ANALYSIS BOX */
+                .gemini-analysis-box {
+                    margin-top: 30px;
+                    padding: 15px;
+                    background: #EAF4FF; /* Biru Sangat Lembut */
+                    border-radius: 15px;
+                    border: 1px solid #C3DFFF;
+                    text-align: left;
+                }
+                .analysis-title {
+                    font-size: 1rem;
+                    font-weight: 700;
+                    color: #1976D2;
+                    margin-bottom: 10px;
+                }
+                .analysis-text {
+                    font-size: 0.9rem;
+                    color: #4A4A4A;
+                    line-height: 1.4;
                 }
                 `}
             </style>
